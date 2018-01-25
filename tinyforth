@@ -1,0 +1,62 @@
+#!/usr/bin/env python
+
+from core import *
+
+from tinyhelper import tokenize
+
+import sys
+
+
+DICTIONARY = {'exit'      : sys.exit,
+              # Arithmetic operators
+              '+'         : add,
+              '-'         : subtract,
+              '*'         : multiply,
+              '/'         : divide,
+              'mod'       : mod,
+              # Stack operations
+              'drop'      : drop,
+              'swap'      : swap,
+              'dup'       : dup,
+              '.'         : dot,
+              '.s'        : dot_s,
+              # Let's get meta!
+              'words'     : words,
+              ':'         : define_word}
+
+
+def execute(word, input_list_ref):
+    if callable(DICTIONARY[word]): # Internally defined
+        try:
+            DICTIONARY[word]()
+        except IndexError:
+            print("Empty stack!!!")
+    elif isinstance(DICTIONARY[word], list): # User-defined
+        fn_list = copy(DICTIONARY[word])
+        interpret(fn_list)
+    else:
+        print("`{}` is not a word I know about!".format(word))
+
+
+def interpret(input_list):
+    while input_list:
+        word = input_list.pop(0)
+
+        if is_a_literal(word):      # Push literals
+            push_literal(word)
+        elif word in DICTIONARY:    # Execute word
+            execute(word, input_list_ref)
+        else:
+            print("I don't know what to do with `{}`!".format(word))
+
+
+if __name__ == '__main__':
+    while True:
+        try:
+            interpret(tokenize('tinyforth> '))
+            print('ok')
+        except KeyboardInterrupt:
+            print('')
+        except EOFError:
+            print('')
+            sys.exit(0)
